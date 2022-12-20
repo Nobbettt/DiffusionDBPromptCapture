@@ -13,12 +13,14 @@ class DiffusionDBDataLoader(Dataset):
         self.pompts = []
         self.pomptlens = []
         for prompt in prompts:
+            prompt_encoding = []
             for word in prompt.split():
                 if word not in word_map_dict:
                     word = "<unk>"
-                self.pompts.append(int(word_map_dict[word]))
-            self.pomptlens.append(len(prompt.split()))
-
+                prompt_encoding.append(int(word_map_dict[word]))
+            self.pompts.append(prompt_encoding)
+            self.pomptlens.append(len(prompt_encoding))
+        
         self.transform = transform
 
         self.dataset_size = 1000

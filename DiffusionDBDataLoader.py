@@ -23,11 +23,14 @@ class DiffusionDBDataLoader(Dataset):
         
         self.transform = transform
 
-        self.dataset_size = 1000
+        self.dataset_size = len(images)
 
         self.PILtransform = transforms.Compose([
             transforms.PILToTensor()
         ])
+
+    def __len__(self):
+        return self.dataset_size
 
     def __getitem__(self, i):
         # Remember, the Nth caption corresponds to the (N // captions_per_image)th image
@@ -68,5 +71,3 @@ class DiffusionDBDataLoader(Dataset):
         
         return canvas
 
-def __len__(self):
-        return self.dataset_size

@@ -1,5 +1,6 @@
 from torch import nn
 import torchvision
+import time
 
 class Encoder(nn.Module):
     """
@@ -10,7 +11,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.enc_image_size = encoded_image_size
 
-        resnet = torchvision.models.resnet101(pretrained=True)  # pretrained ImageNet ResNet-101
+        resnet = torchvision.models.resnet50(pretrained=True)  # pretrained ImageNet ResNet-101
 
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-2]
@@ -27,9 +28,16 @@ class Encoder(nn.Module):
         :param images: images, a tensor of dimensions (batch_size, 3, image_size, image_size)
         :return: encoded images
         """
+        start = time.time()
         out = self.resnet(images)  # (batch_size, 2048, image_size/32, image_size/32)
+        t1 = time.time()
         out = self.adaptive_pool(out)  # (batch_size, 2048, encoded_image_size, encoded_image_size)
+        t2 = time.time()
         out = out.permute(0, 2, 3, 1)  # (batch_size, encoded_image_size, encoded_image_size, 2048)
+        t3 = time.time()
+        print("Resnet", t1-start)
+        print("Pool", t2-t1)
+        print("Permute", t3-t2)
         return out
 
     def fine_tune(self, fine_tune=True):

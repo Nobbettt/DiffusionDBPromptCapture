@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from AttentionNetwork import AttentionNetwork
+import time
 class DecoderWithAttention(nn.Module):
     """
     Decoder.
@@ -85,31 +86,33 @@ class DecoderWithAttention(nn.Module):
         encoder_dim = encoder_out.size(-1)
         vocab_size = self.vocab_size
 
+        #start = time.time()
         # Flatten image
         encoder_out = encoder_out.view(batch_size, -1, encoder_dim)  # (batch_size, num_pixels, encoder_dim)
         num_pixels = encoder_out.size(1)
 
+        #t1 = time.time()
         # Sort input data by decreasing lengths; why? apparent below
         caption_lengths, sort_ind = caption_lengths.sort(dim=0, descending=True)
         encoder_out = encoder_out[sort_ind]
         encoded_captions = encoded_captions[sort_ind]
 
+        #t2 = time.time()
         # Embedding
         embeddings = self.embedding(encoded_captions)  # (batch_size, max_caption_length, embed_dim)
 
+        #t3 = time.time()
         # Initialize LSTM state
         h, c = self.init_hidden_state(encoder_out)  # (batch_size, decoder_dim)
 
         # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
         # So, decoding lengths are actual lengths - 1
-
+        #t4 = time.time()
         decode_lengths = (caption_lengths - 1).tolist()
-        print(batch_size)
-        print(max(decode_lengths))
         # Create tensors to hold word predicion scores and alphas
         predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).to(self.device)
         alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).to(self.device)
-
+        #t5 = time.time()
         # At each time-step, decode by
         # attention-weighing the encoder's output based on the decoder's previous hidden state output
         # then generate a new word in the decoder with the previous word and the attention weighted encoding
@@ -129,5 +132,12 @@ class DecoderWithAttention(nn.Module):
             predictions[:batch_size_t, t, :] = preds
             alphas[:batch_size_t, t, :] = alpha
 
+        #t6 = time.time()
+        #print("Flatten", t1-start)
+        #print("Sort", t2-t1)
+        #print("Embed", t3-t2)
+        #print("Init hidden state", t4-t3)
+        #print("Decode lengths, prediction, alphas", t5-t4)
+        #print("Generative loop", t6-t5)
 
         return predictions, encoded_captions, decode_lengths, alphas, sort_ind

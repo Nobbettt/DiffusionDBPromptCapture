@@ -4,12 +4,14 @@ import torchvision.transforms as transforms
 
 class DiffusionDBDataLoader(Dataset):
     def __init__(self, images, prompts, max_img_dim, word_map_dict, batch_size, transform=None):
+        print("Assertions and dimensions")
         assert len(images) == len(prompts)
         max_img_width, max_img_height = max_img_dim
         self.canvas = torch.full((3,max_img_height,max_img_width),1.)
         self.batch_size = batch_size
         
         # Load encoded pompts (completely into memory)
+        print("Loading prompts")
         pompts = []
         pomptlens = []
         for prompt in prompts:
@@ -25,6 +27,7 @@ class DiffusionDBDataLoader(Dataset):
 
         pompts = [torch.LongTensor(p + [0]*(self.max_encoded_prompt_length-len(p))) for p in pompts]
 
+        print("Setting up transformer")
         self.transform = transform
 
         self.dataset_size = len(images)
@@ -32,11 +35,12 @@ class DiffusionDBDataLoader(Dataset):
         self.PILtransform = transforms.Compose([
             transforms.PILToTensor()
         ])
-
+        
+        print("Creating batches")
         self.batch_images = []
         self.batch_prompt = []
         self.batch_pomptlens = []
-
+        
         for i in range((self.dataset_size//batch_size)+1):
             start_index = min(i*self.batch_size, self.dataset_size)
             end_index = min((i+1)*self.batch_size, self.dataset_size)
@@ -55,6 +59,10 @@ class DiffusionDBDataLoader(Dataset):
         batch_images = self.batch_images[i]
         
         for j in range(len(batch_images)):
+            
+            if torch.is_tensor(batch_images[j]):
+                continue
+            
             batch_images[j] = self.PILtransform(batch_images[j])
             #image = transforms.functional.crop(img= image, top= 0, left= 0, height= 512, width= 512)
 

@@ -7,7 +7,7 @@ class DecoderWithAttention(nn.Module):
     Decoder.
     """
 
-    def __init__(self, attention_dim, embed_dim, decoder_dim, vocab_size, device = torch.device("cpu"), encoder_dim=2048, dropout=0.5):
+    def __init__(self, attention_dim, embed_dim, decoder_dim, vocab_size, device = torch.device("cpu"), encoder_dim=512, dropout=0.5):
         """
         :param attention_dim: size of attention network
         :param embed_dim: embedding size
@@ -93,7 +93,7 @@ class DecoderWithAttention(nn.Module):
 
         #t1 = time.time()
         # Sort input data by decreasing lengths; why? apparent below
-        caption_lengths, sort_ind = caption_lengths.sort(dim=0, descending=True)
+        caption_lengths, sort_ind = caption_lengths.sort(dim=-1, descending=True)
         encoder_out = encoder_out[sort_ind]
         encoded_captions = encoded_captions[sort_ind]
 
@@ -109,6 +109,14 @@ class DecoderWithAttention(nn.Module):
         # So, decoding lengths are actual lengths - 1
         #t4 = time.time()
         decode_lengths = (caption_lengths - 1).tolist()
+        
+        if any(x <= 0 for x in decode_lengths):
+            print("Decode lengths:", decode_lengths)
+            print("caption_lengths:", caption_lengths)
+            print("encoded_captions", encoded_captions)
+            raise AssertionError()
+            
+        
         # Create tensors to hold word predicion scores and alphas
         predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).to(self.device)
         alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).to(self.device)

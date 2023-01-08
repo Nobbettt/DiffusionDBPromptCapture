@@ -14,12 +14,18 @@ class DiffusionDBDataLoader(Dataset):
         print("Loading prompts")
         pompts = []
         pomptlens = []
+        
         for prompt in prompts:
             prompt_encoding = []
+            prompt_encoding.append(int(word_map_dict["<start>"]))
+            
             for word in prompt.split():
                 if word not in word_map_dict:
                     word = "<unk>"
                 prompt_encoding.append(int(word_map_dict[word]))
+            
+            prompt_encoding.append(int(word_map_dict["<end>"])) 
+            
             pompts.append(prompt_encoding)
             pomptlens.append(len(prompt_encoding))
         
@@ -41,7 +47,11 @@ class DiffusionDBDataLoader(Dataset):
         self.batch_prompt = []
         self.batch_pomptlens = []
         
-        for i in range((self.dataset_size//batch_size)+1):
+        add_val = 1
+        if self.dataset_size % batch_size == 0:
+            add_val = 0
+        
+        for i in range((self.dataset_size//batch_size)+add_val):
             start_index = min(i*self.batch_size, self.dataset_size)
             end_index = min((i+1)*self.batch_size, self.dataset_size)
 

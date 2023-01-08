@@ -93,9 +93,9 @@ class DecoderWithAttention(nn.Module):
 
         #t1 = time.time()
         # Sort input data by decreasing lengths; why? apparent below
-        caption_lengths, sort_ind = caption_lengths.sort(dim=-1, descending=True)
-        encoder_out = encoder_out[sort_ind]
-        encoded_captions = encoded_captions[sort_ind]
+        #caption_lengths, sort_ind = caption_lengths.sort(dim=0, descending=True)
+        #encoder_out = encoder_out[sort_ind]
+        #encoded_captions = encoded_captions[sort_ind]
 
         #t2 = time.time()
         # Embedding
@@ -108,14 +108,13 @@ class DecoderWithAttention(nn.Module):
         # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
         # So, decoding lengths are actual lengths - 1
         #t4 = time.time()
-        decode_lengths = (caption_lengths - 1).tolist()
-        
+        decode_lengths = (caption_lengths-1).tolist()
+        ''' 
         if any(x <= 0 for x in decode_lengths):
             print("Decode lengths:", decode_lengths)
             print("caption_lengths:", caption_lengths)
             print("encoded_captions", encoded_captions)
-            raise AssertionError()
-            
+        '''
         
         # Create tensors to hold word predicion scores and alphas
         predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).to(self.device)
@@ -148,4 +147,4 @@ class DecoderWithAttention(nn.Module):
         #print("Decode lengths, prediction, alphas", t5-t4)
         #print("Generative loop", t6-t5)
 
-        return predictions, encoded_captions, decode_lengths, alphas, sort_ind
+        return predictions, encoded_captions, decode_lengths, alphas, []#sort_ind

@@ -8,9 +8,19 @@ class DiffusionDBDataLoader(Dataset):
         max_img_width, max_img_height = max_img_dim
         self.canvas = torch.full((3,max_img_height,max_img_width),1.)
         self.batch_size = batch_size
+
+        tmp_images = []
+        tmp_prompts = []
+        for i, prompt in enumerate(prompts):
+            if len(prompt) > 0:
+                tmp_images.append(images[i])
+                tmp_prompts.append(prompts[i])
         
+        images = tmp_images
+        prompts = tmp_prompts
+
         # Load encoded pompts (completely into memory)
-        pompts = []
+        prompts_arr = []
         pomptlens = []
         for prompt in prompts:
             prompt_encoding = []
@@ -18,12 +28,12 @@ class DiffusionDBDataLoader(Dataset):
                 if word not in word_map_dict:
                     word = "<unk>"
                 prompt_encoding.append(int(word_map_dict[word]))
-            pompts.append(prompt_encoding)
+            prompts_arr.append(prompt_encoding)
             pomptlens.append(len(prompt_encoding))
         
         self.max_encoded_prompt_length = max(pomptlens)
 
-        pompts = [torch.LongTensor(p + [0]*(self.max_encoded_prompt_length-len(p))) for p in pompts]
+        prompts_arr = [torch.LongTensor(p + [0]*(self.max_encoded_prompt_length-len(p))) for p in prompts_arr]
 
         self.transform = transform
 
@@ -42,7 +52,7 @@ class DiffusionDBDataLoader(Dataset):
             end_index = min((i+1)*self.batch_size, self.dataset_size)
 
             self.batch_images.append(images[start_index:end_index])
-            self.batch_prompt.append(pompts[start_index:end_index])
+            self.batch_prompt.append(prompts_arr[start_index:end_index])
             self.batch_pomptlens.append(pomptlens[start_index:end_index])
 
 

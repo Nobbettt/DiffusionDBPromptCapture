@@ -9484,9 +9484,5 @@
   "salvation": 9483,
   "scarecrow": 9484,
   "swaddled": 9485,
-  "dentist": 9486,
-  "<unk>": 9487,
-  "<start>": 9488,
-  "<end>": 9489,
-  "<pad>": 0
+  "dentist": 9486
 }

@@ -1,4 +1,5 @@
 import torch
+import os
 
 class AverageMeter(object):
     """
@@ -59,7 +60,7 @@ def adjust_learning_rate(optimizer, shrink_factor):
     print("The new learning rate is %f\n" % (optimizer.param_groups[0]['lr'],))
 
 def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer, decoder_optimizer,
-                    bleu4, is_best):
+                    top5, is_best):
     """
     Saves model checkpoint.
     :param data_name: base name of processed dataset
@@ -74,7 +75,7 @@ def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder
     """
     state = {'epoch': epoch,
              'epochs_since_improvement': epochs_since_improvement,
-             'bleu-4': bleu4,
+             'top5': top5,
              'encoder': encoder.state_dict(),
              'decoder': decoder.state_dict(),
              'encoder_optimizer': encoder_optimizer.state_dict(),
@@ -84,3 +85,18 @@ def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder
     # If this checkpoint is the best so far, store a copy so it doesn't get overwritten by a worse checkpoint
     if is_best:
         torch.save(state, 'BEST_' + filename)
+        
+def load_checkpoint(data_name, encoder, decoder, encoder_optimizer, decoder_optimizer, best=False):
+    isExist = os.path.exists('BEST_checkpoint_' + data_name + '.pth.tar')
+    
+    if best and isExist:
+        checkpoint = torch.load('BEST_checkpoint_' + data_name + '.pth.tar')
+    else:
+        checkpoint = torch.load('checkpoint_' + data_name + '.pth.tar')
+    
+    encoder.load_state_dict(checkpoint['encoder'])
+    decoder.load_state_dict(checkpoint['decoder'])
+    encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer'])
+    decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer'])
+    
+    return encoder, decoder, encoder_optimizer, decoder_optimizer, checkpoint['epoch'], checkpoint['epochs_since_improvement']

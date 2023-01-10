@@ -79,7 +79,7 @@ def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder
              'history': history,
              'encoder': encoder.state_dict(),
              'decoder': decoder.state_dict(),
-             'encoder_optimizer': encoder_optimizer.state_dict(),
+             'encoder_optimizer': encoder_optimizer.state_dict() if not encoder_optimizer is None else None,
              'decoder_optimizer': decoder_optimizer.state_dict()}
     filename = 'checkpoint_' + data_name + '.pth.tar'
     torch.save(state, filename)
@@ -97,7 +97,8 @@ def load_checkpoint(data_name, encoder, decoder, encoder_optimizer, decoder_opti
     
     encoder.load_state_dict(checkpoint['encoder'])
     decoder.load_state_dict(checkpoint['decoder'])
-    encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer'])
+    if encoder_optimizer is not None:
+        encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer'])
     decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer'])
     
     

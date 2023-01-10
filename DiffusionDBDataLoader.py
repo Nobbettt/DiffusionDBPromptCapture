@@ -1,13 +1,15 @@
 from torch.utils.data import Dataset
 import torch
 import torchvision.transforms as transforms
+import numpy as np
 
 class DiffusionDBDataLoader(Dataset):
-    def __init__(self, images, prompts, max_img_dim, word_map_dict, batch_size, transform=None):
+    def __init__(self, images, prompts, max_img_dim, word_map_dict, batch_size, transform=None, max_length = None, remove_unk = False):
         print("Assertions and dimensions")
         assert len(images) == len(prompts)
-        max_img_width, max_img_height = max_img_dim
-        self.canvas = torch.full((3,max_img_height,max_img_width),1.)
+        self.max_img_width = max_img_dim[0]
+        self.max_img_height = max_img_dim[1]
+        self.canvas = torch.full((3,self.max_img_height,self.max_img_width),1.)
         self.batch_size = batch_size
         
         # Load encoded pompts (completely into memory)
@@ -21,8 +23,13 @@ class DiffusionDBDataLoader(Dataset):
             
             for word in prompt.split():
                 if word not in word_map_dict:
+                    if remove_unk:
+                        continue
+                    
                     word = "<unk>"
                 prompt_encoding.append(int(word_map_dict[word]))
+                if len(prompt_encoding) >= max_length:
+                    break
             
             prompt_encoding.append(int(word_map_dict["<end>"])) 
             
@@ -74,7 +81,12 @@ class DiffusionDBDataLoader(Dataset):
                 continue
             
             batch_images[j] = self.PILtransform(batch_images[j])
-            #image = transforms.functional.crop(img= image, top= 0, left= 0, height= 512, width= 512)
+            
+            if (batch_images[j].shape[1] > self.max_img_height):
+                batch_images[j] = transforms.functional.crop(img=batch_images[j], top= int(round((batch_images[j].shape[1] - self.max_img_height)/2)), left= 0, height= self.max_img_height, width= batch_images[j].shape[2])
+            
+            if (batch_images[j].shape[2] > self.max_img_width):
+                batch_images[j] = transforms.functional.crop(img=batch_images[j], top= 0, left= int(round((batch_images[j].shape[2] - self.max_img_width)/2)), height= batch_images[j].shape[1], width= self.max_img_width)
 
             batch_images[j] = torch.FloatTensor(batch_images[j] / 255.)
             

@@ -60,7 +60,7 @@ def adjust_learning_rate(optimizer, shrink_factor):
     print("The new learning rate is %f\n" % (optimizer.param_groups[0]['lr'],))
 
 def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer, decoder_optimizer,
-                    top5, is_best):
+                    top5, history, is_best):
     """
     Saves model checkpoint.
     :param data_name: base name of processed dataset
@@ -76,6 +76,7 @@ def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder
     state = {'epoch': epoch,
              'epochs_since_improvement': epochs_since_improvement,
              'top5': top5,
+             'history': history,
              'encoder': encoder.state_dict(),
              'decoder': decoder.state_dict(),
              'encoder_optimizer': encoder_optimizer.state_dict(),
@@ -99,4 +100,5 @@ def load_checkpoint(data_name, encoder, decoder, encoder_optimizer, decoder_opti
     encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer'])
     decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer'])
     
-    return encoder, decoder, encoder_optimizer, decoder_optimizer, checkpoint['epoch'], checkpoint['epochs_since_improvement']
+    
+    return encoder, decoder, encoder_optimizer, decoder_optimizer, checkpoint['epoch'], checkpoint['epochs_since_improvement'], checkpoint['history']

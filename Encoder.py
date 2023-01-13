@@ -1,5 +1,5 @@
 from torch import nn
-import torchvision
+from torchvision import models as visionModels
 import time
 
 class Encoder(nn.Module):
@@ -7,7 +7,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.enc_image_size = encoded_image_size
 
-        resnet = torchvision.models.resnet50(pretrained=pretrained) 
+        resnet = visionModels.resnet50(pretrained=pretrained) 
 
         resnet_short = list(resnet.children())[:-2]
         self.resnet = nn.Sequential(*resnet_short)

@@ -4,7 +4,7 @@ from AttentionNetwork import AttentionNetwork
 
 class DecoderWithAttention(nn.Module):
 
-    def __init__(self, attention_dimension, embedding_dimension, decoder_dimension, vocab_size, device = torch.device("cpu"), encoder_dimension=2048, dropoutFraction=0.5):
+    def __init__(self, attention_dimension, embedding_dimension, decoder_dimension, vocab_size, device = torch.device("cpu"), encoder_dimension=2048, dropout_fraction=0.5):
         super(DecoderWithAttention, self).__init__()
         
         self.device = device
@@ -12,7 +12,7 @@ class DecoderWithAttention(nn.Module):
 
         self.attention = AttentionNetwork(encoder_dimension, decoder_dimension, attention_dimension) 
         self.embedding = nn.Embedding(vocab_size, embedding_dimension) 
-        self.dropout = nn.Dropout(p=dropoutFraction)
+        self.dropout = nn.Dropout(p=dropout_fraction)
         self.decode_step = nn.LSTMCell(embedding_dimension + encoder_dimension, decoder_dimension, bias=True)  
         self.init_h = nn.Linear(encoder_dimension, decoder_dimension) 
         self.init_c = nn.Linear(encoder_dimension, decoder_dimension) 
